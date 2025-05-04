@@ -39,7 +39,7 @@ Follow the steps below to run this application on your local machine:
    pip install -r requirements.txt
    
 - **Step:2**
-- Run the Streamlit application: 
+  Run the Streamlit application: 
   ```bash
    streamlit run app.py
 - ⚠️ **Important Note**
