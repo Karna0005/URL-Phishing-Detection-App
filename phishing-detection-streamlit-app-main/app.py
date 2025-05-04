@@ -486,7 +486,7 @@ def load_lottiefile(filepath: str):
         st.error(f"Error decoding JSON file '{filepath}'.")
 
 # File path to the Lottie animation JSON file
-file_path = "https://github.com/Karna0005/Phishing-Detection-App/blob/main/phishing-detection-streamlit-app-main/lottie%20animation.json"
+file_path = "lottie%20animation.json"
 
 # Streamlit app title
 #st.title("Lottie Animation")
