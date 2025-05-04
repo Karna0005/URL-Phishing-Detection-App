@@ -1,0 +1,15 @@
+altair
+beautifulsoup4
+googlesearch-python
+ipaddress
+joblib
+numpy
+pandas
+pickle-mixin
+python-whois
+requests
+scikit-learn
+streamlit
+streamlit-lottie
+streamlit-option-menu
+urllib3
