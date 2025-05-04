@@ -1,23 +1,28 @@
-# 🛡️ Phishing-Detection-App
-This Streamlit-based web application detects whether a given URL is legitimate or phishing using a machine learning model. The app extracts features from the URL and predicts its safety in real time, helping users stay protected from malicious links.
+# 🛡️ URL Phishing Detection App
 
-🔍 Key Features
-Simple and interactive user interface built with Streamlit
+This is a **Streamlit-based web application** that predicts whether a given URL is **legitimate or phishing** using a trained Machine Learning model. It helps users identify potentially malicious websites in real time.
 
-Real-time phishing prediction using trained ML model
+## 🔍 Features
 
-Automatic feature extraction from the input URL
+- ✅ Real-time phishing URL prediction  
+- ✅ Automatic feature extraction from the entered URL  
+- ✅ Clean and interactive UI built with Streamlit  
+- ✅ Lightweight and easy to run locally  
 
-Lightweight and easy to run locally
+## 🚀 Tech Stack
 
-🚀 Tech Stack
-Python
+- Python  
+- Streamlit  
+- scikit-learn (ML model)  
+- Pandas, NumPy  
 
-Streamlit
+## ⚙️ How to Run the Application
 
-scikit-learn / Machine Learning
+1. **Download** or **clone** the repository and open the folder in **Visual Studio Code**.
+2. Open the terminal and install the required packages:
+   ```bash
+   pip install -r requirements.txt
 
-Pandas, NumPy
 
 ## 🛠️ Setup Instructions
 
@@ -28,10 +33,15 @@ Follow the steps below to run this application on your local machine:
    git clone <repository-url>
 2. **Open it in Visual Studio Code**
 3. **Open New Terminal**
-   **Step:1**
+
+- **Step:1**
+   ```bash
    pip install -r requirements.txt
-   **Step:2**
-   Run the Streamlit application: streamlit run app.py
+   
+-**Step:2**
+   Run the Streamlit application: 
+    ```bash
+   streamlit run app.py
 ⚠️ Important Note
 If you receive an error related to the Lottie file, it might be due to an incorrect file path.
 Please double-check and configure the correct path to the Lottie JSON file.
