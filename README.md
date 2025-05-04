@@ -1,4 +1,6 @@
-# 🛡️ URL Phishing Detection App
+# 🛡️ URL Phishing Detection App  
+```bash
+https://phishing-detection-app-8tz5kaeblwv3s3ejvkecit.streamlit.app/
 
 This is a **Streamlit-based web application** that predicts whether a given URL is **legitimate or phishing** using a trained Machine Learning model. It helps users identify potentially malicious websites in real time.
 
