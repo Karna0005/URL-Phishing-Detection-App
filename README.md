@@ -38,13 +38,13 @@ Follow the steps below to run this application on your local machine:
    ```bash
    pip install -r requirements.txt
    
--**Step:2**
-   Run the Streamlit application: 
-    ```bash
+- **Step:2**
+- Run the Streamlit application: 
+  ```bash
    streamlit run app.py
-⚠️ Important Note
+- ⚠️ **Important Note**
 If you receive an error related to the Lottie file, it might be due to an incorrect file path.
 Please double-check and configure the correct path to the Lottie JSON file.
 
-Otherwise, you're all set — enjoy using the app!
+- Otherwise, you're all set — enjoy using the app!
 
