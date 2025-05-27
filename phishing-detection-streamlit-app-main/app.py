@@ -391,7 +391,7 @@ def main():
         features = fe.extract_features()
 
         # Load the trained Random Forest model
-        rfc = pickle.load(open('XGboost.pkl', 'rb'))
+        rfc = pickle.load(open('Randomforest.pkl', 'rb'))
 
         # Make prediction with the Random Forest model
         rfc_prediction = rfc.predict([features])[-1]  # Corrected indexing
