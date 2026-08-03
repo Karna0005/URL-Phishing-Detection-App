@@ -391,7 +391,7 @@ def main():
         features = fe.extract_features()
 
         # Load the trained Random Forest model
-        rfc = pickle.load(open("phishing-detection-streamlit-app-main/phishing.pkl", 'rb'))
+        rfc = pickle.load(open("phishing.pkl", 'rb'))
 
         # Make prediction with the Random Forest model
         rfc_prediction = rfc.predict([features])[-1]  # Corrected indexing
