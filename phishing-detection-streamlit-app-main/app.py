@@ -1,20 +1,47 @@
-from datetime import date
+import os
+import json
+import pickle
 import ipaddress
 import re
 import socket
-from altair import Url
+from datetime import date
+from urllib.parse import urlparse
+
 import streamlit as st
-import pickle
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import urllib3
 import whois
-from urllib.parse import urlparse
 from googlesearch import search
-import joblib
+from streamlit_lottie import st_lottie
+from streamlit_option_menu import option_menu
 
 
+# -------------------------------------------------------
+# Base directory (works locally and on Streamlit Cloud)
+# -------------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# -------------------------------------------------------
+# Load Machine Learning Model
+# -------------------------------------------------------
+MODEL_PATH = os.path.join(BASE_DIR, "phishing.pkl")
+
+try:
+    with open(MODEL_PATH, "rb") as f:
+        rfc = pickle.load(f)
+except FileNotFoundError:
+    st.error(f"Model file not found:\n{MODEL_PATH}")
+    st.stop()
+except Exception as e:
+    st.error(f"Error loading model:\n{e}")
+    st.stop()
+
+
+# -------------------------------------------------------
+# Feature Extraction Class
+# -------------------------------------------------------
 class FeatureExtraction:
     def __init__(self, url):
         self.url = url
@@ -79,7 +106,6 @@ class FeatureExtraction:
         except:
             return 1
 
-        # 2.longUrl
     def long_url(self):
         if len(self.url) < 54:
             return 1
@@ -87,7 +113,6 @@ class FeatureExtraction:
             return 0
         return -1
 
-    # 3.shortUrl
     def short_url(self):
         match = re.search(r'bit\.ly|goo\.gl|shorte\.st|go2l\.ink|x\.co|ow\.ly|t\.co|tinyurl|tr\.im|is\.gd|cli\.gs|'
                           r'yfrog\.com|migre\.me|ff\.im|tiny\.cc|url4\.eu|twit\.ac|su\.pr|twurl\.nl|snipurl\.com|'
@@ -99,7 +124,6 @@ class FeatureExtraction:
         if match:
             return -1
         return 1
-
 
     def symbol(self):
         if '@' in self.url:
@@ -134,6 +158,11 @@ class FeatureExtraction:
             creation_date = self.whois_response.creation_date
 
             if expiration_date is not None and creation_date is not None:
+                if isinstance(expiration_date, list):
+                    expiration_date = expiration_date[0]
+                if isinstance(creation_date, list):
+                    creation_date = creation_date[0]
+                    
                 age = (expiration_date.year - creation_date.year) * 12 + (expiration_date.month - creation_date.month)
                 if age >= 12:
                     return 1
@@ -305,6 +334,8 @@ class FeatureExtraction:
         try:
             creation_date = self.whois_response.creation_date
             if creation_date:
+                if isinstance(creation_date, list):
+                    creation_date = creation_date[0]
                 today = date.today()
                 age = (today.year - creation_date.year) * 12 + (today.month - creation_date.month)
                 if age >= 6:
@@ -315,7 +346,7 @@ class FeatureExtraction:
 
     def dns_recording(self):
         try:
-            return self.age_of_domain()  # Same logic as age_of_domain
+            return self.age_of_domain()
         except:
             return -1
 
@@ -362,7 +393,7 @@ class FeatureExtraction:
 
     def stats_report(self):
         try:
-            url_match = re.search( r'at\.ua|usa\.cc|baltazarpresentes\.com\.br|pe\.hu|esy\.es|hol\.es|sweddy\.com|myjino\.ru|96\.lt|ow\.ly', Url)
+            url_match = re.search( r'at\.ua|usa\.cc|baltazarpresentes\.com\.br|pe\.hu|esy\.es|hol\.es|sweddy\.com|myjino\.ru|96\.lt|ow\.ly', self.url)
             ip_address = socket.gethostbyname(self.domain)
             ip_match = re.search(r'146\.112\.61\.108|213\.174\.157\.151|121\.50\.168\.88|192\.185\.217\.116|78\.46\.211\.158|181\.174\.165\.13|46\.242\.145\.103|121\.50\.168\.40|83\.125\.22\.219|46\.242\.145\.98|'
                                 r'107\.151\.148\.44|107\.151\.148\.107|64\.70\.19\.203|199\.184\.144\.27|107\.151\.148\.108|107\.151\.148\.109|119\.28\.52\.61|54\.83\.43\.69|52\.69\.166\.231|216\.58\.192\.225|'
@@ -379,60 +410,8 @@ class FeatureExtraction:
             return 1
 
 
-def main():
-
-    
-    st.title("Phishing Detection ")
-    input_url = st.text_input(" Enter The URL With HTTP/HTTPS & WWW ")
-
-    if st.button('Predict'):
-        with open("DataFiles/phishing.pkl", "rb") as file:
-            rfc = pickle.load(file)
-    
-        # Extract features from the input URL
-        fe = FeatureExtraction(input_url)
-        features = fe.extract_features()
-
-        # Load the trained Random Forest model
-        #rfc = pickle.load(open("phishing.pkl", 'rb'))
-
-        # Make prediction with the Random Forest model
-        rfc_prediction = rfc.predict([features])[-1]  # Corrected indexing
-
-        # Print the prediction
-        if rfc_prediction == 1:
-            st.header("The URL Is Not Phishing")
-        else:
-            st.header("The URL Is Phishing")
-import os
-import json
-import pickle
-import streamlit as st
-from streamlit_lottie import st_lottie
-from streamlit_option_menu import option_menu
-
 # -------------------------------------------------------
-# Base directory (works locally and on Streamlit Cloud)
-# -------------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# -------------------------------------------------------
-# Load Machine Learning Model
-# -------------------------------------------------------
-MODEL_PATH = os.path.join(BASE_DIR, "phishing.pkl")
-
-try:
-    with open(MODEL_PATH, "rb") as f:
-        rfc = pickle.load(f)
-except FileNotFoundError:
-    st.error(f"Model file not found:\n{MODEL_PATH}")
-    st.stop()
-except Exception as e:
-    st.error(f" Error loading model:\n{e}")
-    st.stop()
-
-# -------------------------------------------------------
-# About Section
+# Utility Functions
 # -------------------------------------------------------
 def show_about_paragraph():
     st.title("About")
@@ -441,11 +420,7 @@ def show_about_paragraph():
     final year project: Detection of Phishing Website Using Machine Learning.
     """)
 
-# -------------------------------------------------------
-# Reference Section
-# -------------------------------------------------------
 def show_reference_read():
-
     faq_list = [
         {"question": "Domain", "answer": "Domain name system e.g facebook.com, bowen.edu.ng"},
         {"question": "Have_IP", "answer": "If an IP address is used instead of a domain name, it is likely phishing."},
@@ -472,9 +447,6 @@ def show_reference_read():
         with st.expander(faq["question"]):
             st.write(faq["answer"])
 
-# -------------------------------------------------------
-# Load Lottie Animation
-# -------------------------------------------------------
 def load_lottiefile(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -486,19 +458,17 @@ def load_lottiefile(filepath):
         st.error(f"Error loading animation:\n{e}")
         return None
 
-LOTTIE_PATH = os.path.join(BASE_DIR, "lottie animation.json")
-lottie_coding = load_lottiefile(LOTTIE_PATH)
-
-# -------------------------------------------------------
-# Utility
-# -------------------------------------------------------
 def markdown_center(text):
     return f'<div style="text-align:center;">{text}</div>'
 
+
 # -------------------------------------------------------
-# Main App
+# Main App (UI + Logic)
 # -------------------------------------------------------
 def main():
+    # Setup Lottie file
+    LOTTIE_PATH = os.path.join(BASE_DIR, "lottie animation.json")
+    lottie_coding = load_lottiefile(LOTTIE_PATH)
 
     with st.sidebar:
         selected = option_menu(
@@ -520,8 +490,28 @@ def main():
                 quality="medium",
             )
 
+        # Phishing Detection Input logic
+        input_url = st.text_input("Enter The URL With HTTP/HTTPS & WWW")
+
+        if st.button('Predict'):
+            if input_url:
+                with st.spinner("Analyzing URL..."):
+                    fe = FeatureExtraction(input_url)
+                    features = fe.extract_features()
+
+                    # Make prediction using the globally loaded Random Forest model
+                    rfc_prediction = rfc.predict([features])[-1] 
+
+                    # Print the prediction
+                    if rfc_prediction == 1:
+                        st.success("The URL Is Legitimate (Not Phishing)")
+                    else:
+                        st.error("The URL Is Phishing")
+            else:
+                st.warning("Please enter a URL first.")
+
         st.markdown(
-            markdown_center("Project by Karunakar S"),
+            markdown_center("<br>Project by Karunakar S"),
             unsafe_allow_html=True,
         )
 
@@ -531,9 +521,8 @@ def main():
     elif selected == "Reference":
         show_reference_read()
 
-
 # -------------------------------------------------------
 # Run App
 # -------------------------------------------------------
 if __name__ == "__main__":
-    main()   
+    main()
