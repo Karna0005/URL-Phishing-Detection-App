@@ -404,110 +404,136 @@ def main():
             st.header("The URL Is Not Phishing")
         else:
             st.header("The URL Is Phishing")
-
-if __name__ == "__main__":
-    main()
-
-
-import json
 import os
+import json
+import pickle
 import streamlit as st
 from streamlit_lottie import st_lottie
-
-import streamlit as st
 from streamlit_option_menu import option_menu
 
-# Define the function to display the paragraph about the author
+# -------------------------------------------------------
+# Base directory (works locally and on Streamlit Cloud)
+# -------------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# -------------------------------------------------------
+# Load Machine Learning Model
+# -------------------------------------------------------
+MODEL_PATH = os.path.join(BASE_DIR, "phishing.pkl")
+
+try:
+    with open(MODEL_PATH, "rb") as f:
+        rfc = pickle.load(f)
+except FileNotFoundError:
+    st.error(f"❌ Model file not found:\n{MODEL_PATH}")
+    st.stop()
+except Exception as e:
+    st.error(f"❌ Error loading model:\n{e}")
+    st.stop()
+
+# -------------------------------------------------------
+# About Section
+# -------------------------------------------------------
 def show_about_paragraph():
     st.title("About")
     st.write("""
-    Intrusion Detection System is a project that came into existence from a final year project Detection of Phishing Website.
-    Using Machine Learning.
+    Intrusion Detection System is a project that came into existence from a
+    final year project: Detection of Phishing Website Using Machine Learning.
     """)
 
-import streamlit as st
-
+# -------------------------------------------------------
+# Reference Section
+# -------------------------------------------------------
 def show_reference_read():
-    # Define FAQ list
+
     faq_list = [
         {"question": "Domain", "answer": "Domain name system e.g facebook.com, bowen.edu.ng"},
-        {"question": "Have_IP", "answer": "If an IP address is used as an alternative of the domain name in the URL, such as 'http://125.98.3.123/fake.html'"},
-        {"question": "Have_AT", "answer": "Using “@” symbol in the URL leads the browser to ignore everything preceding the “@” symbol and the real address often follows the “@” symbol"},
-        {"question": "URL_Length", "answer": "URL length<54 → feature=Legitimate@ else if URL length≥54 and ≤75 → feature=Suspicious @otherwise→ feature=Phishing"},
-        {"question": "URL_Depth", "answer": "Let us assume we have the following link: http://www.hud.ac.uk/students/.) the .ac, .uk, /students are subdomains. Also, if the number of dots is greater than one, then the URL is classified as “Suspicious” since it has one sub domain. However, if the dots are greater than two, it is classified as “Phishing” since it will have multiple sub domains"},
-        {"question": "Redirection", "answer": "a legitimate websites will be redirected one time max. On the other hand, phishing websites containing this feature have been redirected at least 4 times."},
-        {"question": "HTTP_Domain", "answer": "The existence of HTTPS is very important in giving the impression of website legitimacy that is if a Website has Https or not"},
-        {"question": "Tiny_URL", "answer": "it means a domain name that is short, which links to the webpage that has a long URL. For example, the URL “http://portal.hud.ac.uk/” can be shortened to “bit.ly/19DXSk4”.} which can be Phishing"},
-        {"question": "Prefix/Suffix", "answer": "Phishers tend to add prefixes or suffixes separated by (-) to the domain name so that users feel that they are dealing with a legitimate webpage. For example http://www.Confirme-paypal.com/"},
-        {"question": "DNS_Record", "answer": "If the DNS record is empty or not found then the website is classified as “Phishing”, otherwise it is classified as “Legitimate”."},
-        {"question": "Web_Traffic", "answer": "If the DNS record is empty or not found then the website is classified as “Phishing”, otherwise it is classified as “Legitimate”. if the domain has no traffic or is not recognized by the Alexa database, it is classified as “Phishing”. Otherwise, it is classified as “Suspicious"},
-        {"question": "Domain_Age", "answer": "Most phishing websites live for a short period of time. By reviewing our dataset, we find that the minimum age of the legitimate domain is 6 months. } (Age Of Domain≥6 months → Legitimate@Otherwise → Phishing)"},
-        {"question": "Domain_End", "answer": "(Domain Registration Length) █(Domains Expires on≤ 1 years → Phishing@Otherwise→ Legitimate)"},
-        {"question": "iFrame", "answer": "IFrame is an HTML tag used to display an additional webpage into one that is currently shown. Phishers can make use of the “iframe” tag and make it invisible } {(Using iframe→ Phishing@Otherwise → Legitimate)"},
-        {"question": "Mouse_Over", "answer": "{Phishers may use JavaScript to show a fake URL in the status bar to users. To extract this feature, we must dig-out the webpage source code, particularly the “onMouseOver” event, and check if it makes any changes on the status bar. } Rule: IF{█(onMouseOver Changes Status Bar→ Phishing@It Does't Change Status Bar→Legitimate)"},
-        {"question": "Right_Click", "answer": "Phishers use JavaScript to disable the right-click function, so that users cannot view and save the webpage source code. This feature is treated exactly as “Using onMouseOver to hide the Link”. Nonetheless, for this feature, we will search for event “event.button==2” in the webpage source code and check if the right click is disabled. Rule: IF{(Right Click Disabled → Phishing @Otherwise→Legitimate)"},
-        {"question": "Web_Forwards", "answer": "Submitting Information to Email Web form allows a user to submit his personal information that is directed to a server for processing. A phisher might redirect the users information to his personal email. To that end, a server-side script language might be used such as mail() function in PHP. One more client-side function that might be used for this purpose is the mailto: function. (Using mail()\ or \mailto:\ Function to Submit User Information → Phishing@Otherwise → Legitimate)"}
+        {"question": "Have_IP", "answer": "If an IP address is used instead of a domain name, it is likely phishing."},
+        {"question": "Have_AT", "answer": "URLs containing '@' may hide the real destination."},
+        {"question": "URL_Length", "answer": "URL length <54 = Legitimate, 54–75 = Suspicious, >75 = Phishing."},
+        {"question": "URL_Depth", "answer": "More subdirectories generally indicate a suspicious URL."},
+        {"question": "Redirection", "answer": "Multiple redirects are often associated with phishing websites."},
+        {"question": "HTTP_Domain", "answer": "HTTPS generally indicates a more legitimate website."},
+        {"question": "Tiny_URL", "answer": "Shortened URLs (bit.ly, tinyurl, etc.) can hide phishing websites."},
+        {"question": "Prefix/Suffix", "answer": "Using '-' in the domain name is common in phishing websites."},
+        {"question": "DNS_Record", "answer": "Missing DNS records often indicate phishing."},
+        {"question": "Web_Traffic", "answer": "Very low traffic websites are more likely to be phishing."},
+        {"question": "Domain_Age", "answer": "Domains younger than 6 months are more suspicious."},
+        {"question": "Domain_End", "answer": "Domains expiring within one year are more suspicious."},
+        {"question": "iFrame", "answer": "Invisible iframes are commonly used in phishing websites."},
+        {"question": "Mouse_Over", "answer": "Changing the status bar on mouse hover is suspicious."},
+        {"question": "Right_Click", "answer": "Disabling right-click is commonly used by phishing websites."},
+        {"question": "Web_Forwards", "answer": "Using mail() or mailto: to collect information is suspicious."},
     ]
 
-    # Display FAQ list
     st.title("Reference")
 
     for faq in faq_list:
         with st.expander(faq["question"]):
             st.write(faq["answer"])
 
-# Call the function to display the FAQ list
-#show_reference_read()
-
-
-
-with st.sidebar:
-    selected = option_menu("Main Menu", ["Home", "About", "Reference"], 
-        icons=['house', 'person', 'book'], menu_icon="cast", default_index=0)
-
-# Check the selected option and show the corresponding content
-if selected == "Home":
-    # Display the Lottie animation
-    st.write("")
-elif selected == "About":
-    # Display the paragraph about the author
-    show_about_paragraph()
-elif selected == "Reference":
-    # Display the paragraph about the author
-    show_reference_read()    
-
-    
-
-# Function to load Lottie animation from a JSON file
-def load_lottiefile(filepath: str):
+# -------------------------------------------------------
+# Load Lottie Animation
+# -------------------------------------------------------
+def load_lottiefile(filepath):
     try:
-        with open(filepath, "r") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        st.error(f"File '{filepath}' not found.")
-    except json.JSONDecodeError:
-        st.error(f"Error decoding JSON file '{filepath}'.")
+        st.error(f"Animation file not found:\n{filepath}")
+        return None
+    except Exception as e:
+        st.error(f"Error loading animation:\n{e}")
+        return None
 
-# File path to the Lottie animation JSON file
-file_path = "phishing-detection-streamlit-app-main/lottie animation.json"
+LOTTIE_PATH = os.path.join(BASE_DIR, "lottie animation.json")
+lottie_coding = load_lottiefile(LOTTIE_PATH)
 
-# Streamlit app title
-#st.title("Lottie Animation")
-
-# Load the Lottie animation file
-lottie_coding = load_lottiefile(file_path)
-
-# Display the Lottie animation using st_lottie
-if lottie_coding is not None:
-    st_lottie(lottie_coding, speed=1, loop=True, quality="medium")
-else:
-    st.error("Failed to load Lottie animation.")
-
-
+# -------------------------------------------------------
+# Utility
+# -------------------------------------------------------
 def markdown_center(text):
-    return f'<div style="text-align: center;">{text}</div>'
+    return f'<div style="text-align:center;">{text}</div>'
 
-# Your Streamlit app content goes here
+# -------------------------------------------------------
+# Main App
+# -------------------------------------------------------
+def main():
 
-# Add centered markdown text
-st.markdown(markdown_center("Project by Karunakar S"), unsafe_allow_html=True)    
+    with st.sidebar:
+        selected = option_menu(
+            "Main Menu",
+            ["Home", "About", "Reference"],
+            icons=["house", "person", "book"],
+            menu_icon="cast",
+            default_index=0,
+        )
+
+    if selected == "Home":
+        st.title("Phishing Detection System")
+
+        if lottie_coding is not None:
+            st_lottie(
+                lottie_coding,
+                speed=1,
+                loop=True,
+                quality="medium",
+            )
+
+        st.markdown(
+            markdown_center("Project by Karunakar S"),
+            unsafe_allow_html=True,
+        )
+
+    elif selected == "About":
+        show_about_paragraph()
+
+    elif selected == "Reference":
+        show_reference_read()
+
+
+# -------------------------------------------------------
+# Run App
+# -------------------------------------------------------
+if __name__ == "__main__":
+    main()   
