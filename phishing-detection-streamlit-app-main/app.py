@@ -391,7 +391,7 @@ def main():
         features = fe.extract_features()
 
         # Load the trained XGboost model
-        rfc = pickle.load(open("XGboost.pkl", 'rb'))
+        rfc = pickle.load(open("phishing-detection-streamlit-app-main/XGboost.pkl", 'rb'))
 
         # Make prediction with the Random Forest model
         rfc_prediction = rfc.predict([features])[-1]  # Corrected indexing
