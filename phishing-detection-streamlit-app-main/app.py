@@ -390,7 +390,7 @@ def main():
         fe = FeatureExtraction(input_url)
         features = fe.extract_features()
 
-        # Load the trained Random Forest model
+        # Load the trained XGboost model
         rfc = pickle.load(open("XGboost.pkl", 'rb'))
 
         # Make prediction with the Random Forest model
@@ -486,7 +486,7 @@ def load_lottiefile(filepath: str):
         st.error(f"Error decoding JSON file '{filepath}'.")
 
 # File path to the Lottie animation JSON file
-file_path = "lottie animation.json"
+file_path = "phishing-detection-streamlit-app-main/lottie animation.json"
 
 # Streamlit app title
 #st.title("Lottie Animation")
