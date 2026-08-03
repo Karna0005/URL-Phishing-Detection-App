@@ -386,7 +386,7 @@ def main():
     input_url = st.text_input(" Enter The URL With HTTP/HTTPS & WWW ")
 
     if st.button('Predict'):
-        with open("phishing.pkl", "rb") as file:
+        with open("DataFiles/phishing.pkl", "rb") as file:
             rfc = pickle.load(file)
     
         # Extract features from the input URL
