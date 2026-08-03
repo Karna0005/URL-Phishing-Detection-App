@@ -425,10 +425,10 @@ try:
     with open(MODEL_PATH, "rb") as f:
         rfc = pickle.load(f)
 except FileNotFoundError:
-    st.error(f"❌ Model file not found:\n{MODEL_PATH}")
+    st.error(f"Model file not found:\n{MODEL_PATH}")
     st.stop()
 except Exception as e:
-    st.error(f"❌ Error loading model:\n{e}")
+    st.error(f" Error loading model:\n{e}")
     st.stop()
 
 # -------------------------------------------------------
