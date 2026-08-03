@@ -492,7 +492,7 @@ file_path = "lottie animation.json"
 #st.title("Lottie Animation")
 
 # Load the Lottie animation file
-lottie_coding = load_lottiefile(file_path)
+lottie_coding = load_lottiefile(lottie animation.json)
 
 # Display the Lottie animation using st_lottie
 if lottie_coding is not None:
